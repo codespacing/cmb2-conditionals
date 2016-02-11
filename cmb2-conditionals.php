@@ -21,21 +21,78 @@ function cmb2_conditionals_load_actions()
 	define('CMB2_CONDITIONALS_PRIORITY', 99999);
 
 	add_action('admin_init', 'cmb2_conditionals_hook_data_to_save_filtering', CMB2_CONDITIONALS_PRIORITY);
-	add_action('admin_footer', 'cmb2_conditionals_footer', CMB2_CONDITIONALS_PRIORITY);
+
+	add_action('admin_enqueue_scripts', 'cmb2_conditionals_register_script', CMB2_CONDITIONALS_PRIORITY);
+	add_action('admin_footer', 'cmb2_conditionals_enqueue_script', CMB2_CONDITIONALS_PRIORITY);
+	add_filter('cmb2_field_arguments', 'cmb2_conditionals_has_conditions', CMB2_CONDITIONALS_PRIORITY, 4 );
 }
 
 /**
- * Decides whether include the scripts or not.
+ * 'Abuse' a filter to determine whether the script needs to be loaded.
+ *
+ * Checks whenever a field is registered in CMB2 whether it has conditions and if so, ensures
+ * that the script will be enqueued.
+ *
+ * @param array $args CMB2 field arguments.
+ * @param string $field_id CMB2 field id
+ * @param string $field_type CMB2 field type
+ * @param string $object_type CMB2 object type, either 'post', 'term', 'user' or 'comment'
+ * @return array Unchanged $args.
  */
-function cmb2_conditionals_footer()
+function cmb2_conditionals_has_conditions( $args, $field_id, $field_type, $object_type )
 {
-	global $pagenow;
+	if ( false === has_filter( 'cmb2-conditionals-enqueue_script-' . $object_type, '__return_true' ) && ( isset( $args['required'] ) || isset( $args['attributes']['data-conditional-id'] ) || isset( $args['attributes']['required'] ) ) ) {
+		add_filter( 'cmb2-conditionals-enqueue_script-' . $object_type, '__return_true' );
+	}
 
-    if(!in_array($pagenow, array('post-new.php', 'post.php'))) {
-    	return;
-    }
+	return $args;
+}
 
-	wp_enqueue_script('cmb2-conditionals', plugins_url('/cmb2-conditionals.js', __FILE__ ), array('jquery'), '1.0.2', true);
+
+/**
+ * Register the script.
+ */
+function cmb2_conditionals_register_script()
+{
+	$suffix = ( ( defined( 'SCRIPT_DEBUG' ) && true === SCRIPT_DEBUG ) ? '' : '.min' );
+
+	wp_register_script(
+		'cmb2-conditionals', // ID.
+		plugins_url( 'js/cmb2-conditionals' . $suffix . '.js', __FILE__ ), // URL.
+		array( 'jquery' ), // Dependants.
+		'1.0.2', // Version.
+		true // Load in footer ?
+	);
+}
+
+/**
+ * Enqueue the script only when needed.
+ */
+function cmb2_conditionals_enqueue_script()
+{
+	$screen = get_current_screen();
+
+	if ( ! property_exists( $screen, 'base' ) || ! property_exists( $screen, 'parent_base' ) ) {
+		return;
+	}
+
+	$object_type = '';
+
+	if ( 'post' === $screen->base && 'edit' === $screen->parent_base ) {
+		$object_type = 'post';
+	} else if ( 'edit-tags' === $screen->base && 'edit' === $screen->parent_base ) {
+		$object_type = 'term';
+	} else if ( in_array( $screen->base, array( 'user', 'profile' ), true ) && 'users' === $screen->parent_base ) {
+		$object_type = 'user';
+	} else if ( 'comment' === $screen->base && 'edit-comments' === $screen->parent_base ) {
+		$object_type = 'comment';
+	}
+
+	if ( '' === $object_type || false === apply_filters( 'cmb2-conditionals-enqueue_script-' . $object_type, false ) ) {
+		return;
+	}
+
+	wp_enqueue_script( 'cmb2-conditionals' );
 }
 
 /**
