@@ -88,7 +88,7 @@ function cmb2_conditionals_enqueue_script()
 		$object_type = 'comment';
 	}
 
-	if ( '' === $object_type || false === apply_filters( 'cmb2-conditionals-enqueue_script-' . $object_type, false ) ) {
+	if ( ( '' === $object_type || false === apply_filters( 'cmb2-conditionals-enqueue_script-' . $object_type, false ) ) && true !== apply_filters( 'cmb2-conditionals-enqueue-script', false ) ) {
 		return;
 	}
 
