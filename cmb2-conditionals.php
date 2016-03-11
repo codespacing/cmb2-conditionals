@@ -24,7 +24,7 @@ function cmb2_conditionals_load_actions()
 
 	add_action('admin_enqueue_scripts', 'cmb2_conditionals_register_script', CMB2_CONDITIONALS_PRIORITY);
 	add_action('admin_footer', 'cmb2_conditionals_enqueue_script', CMB2_CONDITIONALS_PRIORITY);
-	add_filter('cmb2_field_arguments', 'cmb2_conditionals_has_conditions', CMB2_CONDITIONALS_PRIORITY, 4 );
+	add_filter('cmb2_field_arguments', 'cmb2_conditionals_has_conditions', CMB2_CONDITIONALS_PRIORITY, 2 );
 }
 
 /**
@@ -33,16 +33,14 @@ function cmb2_conditionals_load_actions()
  * Checks whenever a field is registered in CMB2 whether it has conditions and if so, ensures
  * that the script will be enqueued.
  *
- * @param array $args CMB2 field arguments.
- * @param string $field_id CMB2 field id
- * @param string $field_type CMB2 field type
- * @param string $object_type CMB2 object type, either 'post', 'term', 'user' or 'comment'
+ * @param array             $args  Metabox field config array after processing.
+ * @param CMB2_Field object $field CMB2 Field object.
  * @return array Unchanged $args.
  */
-function cmb2_conditionals_has_conditions( $args, $field_id, $field_type, $object_type )
+function cmb2_conditionals_has_conditions( $args, $field_object )
 {
-	if ( false === has_filter( 'cmb2-conditionals-enqueue_script-' . $object_type, '__return_true' ) && ( isset( $args['required'] ) || isset( $args['attributes']['data-conditional-id'] ) || isset( $args['attributes']['required'] ) ) ) {
-		add_filter( 'cmb2-conditionals-enqueue_script-' . $object_type, '__return_true' );
+	if ( false === has_filter( 'cmb2-conditionals-enqueue_script-' . $field_object->object_type, '__return_true' ) && ( isset( $args['required'] ) || isset( $args['attributes']['data-conditional-id'] ) || isset( $args['attributes']['required'] ) ) ) {
+		add_filter( 'cmb2-conditionals-enqueue_script-' . $field_object->object_type, '__return_true' );
 	}
 
 	return $args;
