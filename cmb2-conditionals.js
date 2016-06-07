@@ -5,7 +5,7 @@ jQuery( document ).ready( function( $ ) {
 	 * Add 'show' and 'hide' event to JQuery event detection.
 	 * @see http://viralpatel.net/blogs/jquery-trigger-custom-event-show-hide-element/
 	 */
-	$.each( ['show', 'hide'], function( i, ev ) {
+	$.each( ['cmb2-conditionals-show', 'cmb2-conditionals-hide'], function( i, ev ) {
 		var el = $.fn[ev];
 		$.fn[ev] = function() {
 			this.trigger( ev );
@@ -143,14 +143,14 @@ jQuery( document ).ready( function( $ ) {
 		 */
 
 		// Remove the required property from form elements within rows being hidden.
-		conditionContext.on( 'hide', '.cmb-row', function() {
+		conditionContext.on( 'cmb2-conditionals-hide', '.cmb-row', function() {
 			$( this ).children( '[data-conditional-required="required"]' ).each( function( i, e ) {
 				$( e ).prop( 'required', false );
 			});
 		});
 
 		// Add the required property to form elements within rows being unhidden.
-		conditionContext.on( 'show', '.cmb-row', function() {
+		conditionContext.on( 'cmb2-conditionals-show', '.cmb-row', function() {
 			$( this ).children( '[data-conditional-required="required"]' ).each( function( i, e ) {
 				$( e ).prop( 'required', true );
 			});
