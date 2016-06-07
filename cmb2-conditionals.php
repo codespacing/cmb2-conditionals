@@ -90,11 +90,13 @@ if ( ! class_exists( 'CMB2_Conditionals' ) ) {
 
 			add_action( 'admin_init', array( $this, 'admin_init' ), self::PRIORITY );
 			add_action( 'admin_footer', array( $this, 'admin_footer' ), self::PRIORITY );
+			add_action( 'cmb2_additional_group_attributes', array( $this, 'add_group_attributes' ), self::PRIORITY, 3 );
 
 			foreach ( $this->maybe_required_form_elms as $element ) {
 				add_filter( "cmb2_{$element}_attributes", array( $this, 'maybe_set_required_attribute' ), self::PRIORITY );
 			}
 		}
+
 
 		/**
 		 * Decide whether to include the js-script or not.
@@ -111,6 +113,35 @@ if ( ! class_exists( 'CMB2_Conditionals' ) ) {
 				self::VERSION,
 				true
 			);
+		}
+
+
+		/**
+		 * Add the data-conditional attributes to a group element.
+		 *
+		 * @param string $attr_string The current HTML attribute string.
+		 * @param array  $group_args  The arguments originally provided for the group.
+		 * @param string $group_id    The CMB2 group id.
+		 *
+		 * @return string The potentially adjusted HTML attribute string.
+		 */
+		public function add_group_attributes( $attr_string, $group_args, $group_id ) {
+			if ( ! isset( $group_args['attributes']['data-conditional-id'] ) ) {
+				return $attr_string;
+			}
+
+			$attr_string .= sprintf(
+				' data-conditional-id="%s"',
+				esc_attr( $group_args['attributes']['data-conditional-id'] )
+			);
+
+			if ( isset( $group_args['attributes']['data-conditional-value'] ) ) {
+				$attr_string .= sprintf(
+					' data-conditional-value="%s"',
+					esc_attr( $group_args['attributes']['data-conditional-value'] )
+				);
+			}
+			return $attr_string;
 		}
 
 
