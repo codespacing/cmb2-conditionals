@@ -162,36 +162,38 @@ if ( ! class_exists( 'CMB2_Conditionals' ) ) {
 		 * The potentially adjusted array is returned via reference $cmb2.
 		 */
 		public function filter_data_to_save( CMB2 $cmb2, $object_id ) {
-			foreach ( $cmb2->prop( 'fields' ) as $field_args ) {
-				if ( ! ( 'group' === $field_args['type'] || ( array_key_exists( 'attributes', $field_args ) && array_key_exists( 'data-conditional-id', $field_args['attributes'] ) ) ) ) {
-					continue;
-				}
-
-				if ( 'group' === $field_args['type'] ) {
-					foreach ( $field_args['fields'] as $group_field ) {
-						if ( ! ( array_key_exists( 'attributes', $group_field ) && array_key_exists( 'data-conditional-id', $group_field['attributes'] ) ) ) {
-							continue;
-						}
-
-						$field_id               = $group_field['id'];
-						$conditional_id         = $group_field['attributes']['data-conditional-id'];
-						$decoded_conditional_id = @json_decode( $conditional_id );
-						if ( $decoded_conditional_id ) {
-							$conditional_id = $decoded_conditional_id;
-						}
-
-						if ( is_array( $conditional_id ) && ! empty( $conditional_id ) && ! empty( $cmb2->data_to_save[ $conditional_id[0] ] ) ) {
-							foreach ( $cmb2->data_to_save[ $conditional_id[0] ] as $key => $group_data ) {
-								$cmb2->data_to_save[ $conditional_id[0] ][ $key ] = $this->filter_field_data_to_save( $group_data, $field_id, $conditional_id[1], $group_field['attributes'] );
-							}
-						}
+			if(is_array($field_args['fields'])){
+				foreach ( $cmb2->prop( 'fields' ) as $field_args ) {
+					if ( ! ( 'group' === $field_args['type'] || ( array_key_exists( 'attributes', $field_args ) && array_key_exists( 'data-conditional-id', $field_args['attributes'] ) ) ) ) {
 						continue;
 					}
-				} else {
-					$field_id       = $field_args['id'];
-					$conditional_id = $field_args['attributes']['data-conditional-id'];
 
-					$cmb2->data_to_save = $this->filter_field_data_to_save( $cmb2->data_to_save, $field_id, $conditional_id, $field_args['attributes'] );
+					if ( 'group' === $field_args['type'] ) {
+						foreach ( $field_args['fields'] as $group_field ) {
+							if ( ! ( array_key_exists( 'attributes', $group_field ) && array_key_exists( 'data-conditional-id', $group_field['attributes'] ) ) ) {
+								continue;
+							}
+
+							$field_id               = $group_field['id'];
+							$conditional_id         = $group_field['attributes']['data-conditional-id'];
+							$decoded_conditional_id = @json_decode( $conditional_id );
+							if ( $decoded_conditional_id ) {
+								$conditional_id = $decoded_conditional_id;
+							}
+
+							if ( is_array( $conditional_id ) && ! empty( $conditional_id ) && ! empty( $cmb2->data_to_save[ $conditional_id[0] ] ) ) {
+								foreach ( $cmb2->data_to_save[ $conditional_id[0] ] as $key => $group_data ) {
+									$cmb2->data_to_save[ $conditional_id[0] ][ $key ] = $this->filter_field_data_to_save( $group_data, $field_id, $conditional_id[1], $group_field['attributes'] );
+								}
+							}
+							continue;
+						}
+					} else {
+						$field_id       = $field_args['id'];
+						$conditional_id = $field_args['attributes']['data-conditional-id'];
+
+						$cmb2->data_to_save = $this->filter_field_data_to_save( $cmb2->data_to_save, $field_id, $conditional_id, $field_args['attributes'] );
+					}
 				}
 			}
 		}
